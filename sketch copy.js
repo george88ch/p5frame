@@ -11,71 +11,21 @@ PoseNet example using p5.js
 let video;
 let poseNet;
 let poses = [];
-let canvas;
-
-let snapshots = [];
-
-let poseScanningRunning = false;
 
 function setup() {
-  canvas = createCanvas(320, 240);
-  // createCanvas(320, 240);
-  canvas.parent("videoId");
-  background(51);
+  createCanvas(320, 270);
   video = createCapture(VIDEO);
-  video.size(320, 240);
+  video.size(width, height);
 
   // Create a new poseNet method with a single detection
   poseNet = ml5.poseNet(video, modelReady);
   // This sets up an event that fills the global variable "poses"
   // with an array every time new poses are detected
-
+  poseNet.on("pose", function (results) {
+    poses = results;
+  });
   // Hide the video element, and just show the canvas
-  // video.hide();
-}
-
-function takeSnapshot() {
-  snapshots.push(video.get());
-  image(video, 0, 0);
-}
-
-// put the pose event callback in a variable
-const poseCallback = function (results) {
-  poses = results;
-  let part = poses[0].pose.keypoints[0].part;
-  let posX = poses[0].pose.keypoints[0].position.x;
-  let posY = poses[0].pose.keypoints[0].position.y;
-  select("#status").html(part + ";" + posX + ";" + posY);
-  // console.log("poses: ", poses[0].pose.keypoints[0]);
-};
-
-function checkMoving() {
-  let cnt = 0;
-  let intervalId = setInterval(async function () {
-    snapshots[cnt] = video.get();
-    console.log("say hello", Date.now(), snapshots[cnt]);
-    if (video.loadedmetadata) {
-      let img = video.get();
-      image(img, 200, 400, 320, 2400);
-      snapshots.push(img);
-    }
-    if (cnt++ >= 1) {
-      clearInterval(intervalId);
-    }
-  }, 1000);
-}
-
-function takePicture() {
-  console.log("takePicture", Date.now());
-}
-
-function startScanning() {
-  poseScanningRunning = true;
-  poseNet.on("pose", poseCallback);
-}
-function stopScanning() {
-  poseNet.removeListener("pose", poseCallback);
-  poseScanningRunning = false;
+  video.hide();
 }
 
 function modelReady() {
@@ -83,12 +33,11 @@ function modelReady() {
 }
 
 function draw() {
-  // image(video, 0, 0, width, height);
+  image(video, 0, 0, width, height);
+
   // We can call both functions to draw all keypoints and the skeletons
-  if (poseScanningRunning) {
-    drawKeypoints();
-    drawSkeleton();
-  }
+  drawKeypoints();
+  drawSkeleton();
 }
 
 // A function to draw ellipses over the detected keypoints
